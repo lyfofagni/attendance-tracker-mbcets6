@@ -4,6 +4,13 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <title>S7 CS1 · Attendance</title>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Attendance">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#1c2331">
+<link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='20' fill='%231c2331'/%3E%3Ctext x='50' y='64' font-size='48' font-family='Georgia,serif' font-weight='bold' fill='%23b8862f' text-anchor='middle'%3EA%3C/text%3E%3C/svg%3E">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='20' fill='%231c2331'/%3E%3Ctext x='50' y='64' font-size='48' font-family='Georgia,serif' font-weight='bold' fill='%23b8862f' text-anchor='middle'%3EA%3C/text%3E%3C/svg%3E">
 <style>
   :root{
     --ink:#1c2331;
@@ -19,6 +26,8 @@
     --absent-bg:#f8e6e4;
     --nc:#8a8477;
     --nc-bg:#eeece3;
+    --holiday:#6a5b96;
+    --holiday-bg:#eae5f4;
     --radius:14px;
   }
   *{box-sizing:border-box;}
@@ -136,6 +145,24 @@
   .period-card.present::before{background:var(--present);}
   .period-card.absent::before{background:var(--absent);}
   .period-card.nc::before{background:var(--nc);}
+  .period-card.holiday::before{background:var(--holiday);}
+
+  .holiday-toggle-btn{
+    display:block;
+    width:100%;
+    padding:10px 0;
+    margin-bottom:14px;
+    border-radius:10px;
+    border:1px solid var(--holiday);
+    background:var(--holiday-bg);
+    color:var(--holiday);
+    font-size:13px;
+    font-weight:600;
+  }
+  .holiday-toggle-btn.active{
+    background:var(--holiday);
+    color:#fff;
+  }
 
   .p-top{
     display:flex;
@@ -169,22 +196,23 @@
     white-space:nowrap;
   }
   .status-row{
-    display:flex;
-    gap:8px;
+    display:grid;
+    grid-template-columns:repeat(4,1fr);
+    gap:6px;
   }
   .status-row button{
-    flex:1;
     padding:9px 0;
     border-radius:9px;
     border:1px solid var(--line);
     background:var(--paper);
-    font-size:13px;
+    font-size:12px;
     font-weight:600;
     color:var(--ink-soft);
   }
   .status-row button.sel-present{background:var(--present-bg);color:var(--present);border-color:var(--present);}
   .status-row button.sel-absent{background:var(--absent-bg);color:var(--absent);border-color:var(--absent);}
   .status-row button.sel-nc{background:var(--nc-bg);color:var(--nc);border-color:var(--nc);}
+  .status-row button.sel-holiday{background:var(--holiday-bg);color:var(--holiday);border-color:var(--holiday);}
 
   .empty-note{
     text-align:center;
@@ -298,6 +326,7 @@
     <button onclick="changeDate(1)">&#8250;</button>
     <button class="today-btn" onclick="goToday()" style="width:auto;height:auto;">Today</button>
   </div>
+  <button id="holiday-toggle" class="holiday-toggle-btn" onclick="toggleDayHoliday()">Mark whole day as holiday</button>
   <div id="periods-list"><div class="loading">Loading your day…</div></div>
 </div>
 
@@ -320,25 +349,26 @@ const SUBJECTS = {
   "IE2":       "Environmental Health and Safety",
   "CVV":       "Comprehensive Viva Voce",
   "PROJ":      "Project",
-  "PROJ-SDP":  "Project / SDP",
-  "MINOR":     "Minor Project"
+  "PROJ-SDP":  "Project / SDP"
 };
 
-// day index: 0=Sun 1=Mon ... 6=Sat
+// day index: 0=Sun 1=Mon ... 6=Sat. Every hour is its own period, nothing merged.
 const TEMPLATE = {
   1: [ // Monday
     {id:"p1", time:"09:15–10:15", code:"CD"},
-    {id:"p2", time:"10:35–12:35", code:"CD-LAB"},
-    {id:"p3", time:"13:30–14:25", code:"PROJ"},
-    {id:"p4", time:"14:25–15:20", code:"PE3"},
-    {id:"p5", time:"15:35–16:30", code:"IE2"},
+    {id:"p2", time:"10:35–11:35", code:"CD-LAB"},
+    {id:"p3", time:"11:35–12:35", code:"CD-LAB"},
+    {id:"p4", time:"13:30–14:25", code:"PROJ"},
+    {id:"p5", time:"14:25–15:20", code:"PE3"},
+    {id:"p6", time:"15:35–16:30", code:"IE2"},
   ],
   2: [ // Tuesday
     {id:"p1", time:"09:15–10:15", code:"PE3"},
     {id:"p2", time:"10:35–11:35", code:"WT"},
     {id:"p3", time:"11:35–12:35", code:"CD"},
-    {id:"p4", time:"13:30–15:20", code:"WT-LAB"},
-    {id:"p5", time:"15:35–16:30", code:"WT-LAB"},
+    {id:"p4", time:"13:30–14:25", code:"WT-LAB"},
+    {id:"p5", time:"14:25–15:20", code:"WT-LAB"},
+    {id:"p6", time:"15:35–16:30", code:"WT-LAB"},
   ],
   3: [ // Wednesday
     {id:"p1", time:"09:15–10:15", code:"IE2"},
@@ -358,15 +388,14 @@ const TEMPLATE = {
   ],
   5: [ // Friday
     {id:"p1", time:"09:15–10:15", code:"PROJ"},
-    {id:"p2", time:"10:35–12:35", code:"PROJ"},
-    {id:"p3", time:"14:00–16:30", code:"PROJ"},
+    {id:"p2", time:"10:35–11:35", code:"PROJ"},
+    {id:"p3", time:"11:35–12:35", code:"PROJ"},
+    {id:"p4", time:"14:00–14:50", code:"PROJ"},
+    {id:"p5", time:"14:50–15:40", code:"PROJ"},
+    {id:"p6", time:"15:40–16:30", code:"PROJ"},
   ],
-  6: [ // Saturday
-    {id:"p1", time:"09:15–10:15", code:"MINOR"},
-    {id:"p2", time:"10:35–12:35", code:"MINOR"},
-    {id:"p3", time:"14:00–16:30", code:"MINOR"},
-  ],
-  0: [] // Sunday - no classes
+  6: [], // Saturday - no classes
+  0: []  // Sunday - no classes
 };
 
 const TERM_START = new Date(2026,6,1);   // 1/7/2026
@@ -388,10 +417,31 @@ function dowName(d){
   return d.toLocaleDateString('en-US',{weekday:'long'});
 }
 
+// Persistent storage using the browser's own localStorage.
+// Data is saved on this device/browser and survives closing the app or restarting the phone.
+const storage = {
+  get(key){
+    const raw = localStorage.getItem(key);
+    return Promise.resolve(raw !== null ? {key, value: raw} : null);
+  },
+  set(key, value){
+    localStorage.setItem(key, value);
+    return Promise.resolve({key, value});
+  },
+  list(prefix){
+    const keys = [];
+    for(let i=0;i<localStorage.length;i++){
+      const k = localStorage.key(i);
+      if(k && k.indexOf(prefix)===0) keys.push(k);
+    }
+    return Promise.resolve({keys});
+  }
+};
+
 async function getDayRecord(dateObj){
   const key = 'day:'+fmtKey(dateObj);
   try{
-    const res = await window.storage.get(key, false);
+    const res = await storage.get(key);
     if(res && res.value) return JSON.parse(res.value);
   }catch(e){}
   // build fresh from template
@@ -406,7 +456,7 @@ async function getDayRecord(dateObj){
 async function saveDayRecord(dateObj, periods){
   const key = 'day:'+fmtKey(dateObj);
   try{
-    await window.storage.set(key, JSON.stringify(periods), false);
+    await storage.set(key, JSON.stringify(periods));
   }catch(e){ console.error('save failed', e); }
 }
 
@@ -418,27 +468,36 @@ async function renderToday(){
   document.getElementById('dow-label').textContent = dowName(currentDate);
   document.getElementById('date-label').textContent = fmtFull(currentDate);
   const list = document.getElementById('periods-list');
+  const holidayBtn = document.getElementById('holiday-toggle');
 
   if(!inTerm(currentDate)){
+    holidayBtn.style.display = 'none';
     list.innerHTML = '<div class="empty-note">Outside the semester window (1 Jul – 5 Nov 2026). No classes to mark.</div>';
     return;
   }
   const dow = currentDate.getDay();
-  if(dow === 0){
-    list.innerHTML = '<div class="empty-note">No classes on Sunday.</div>';
+  if(dow === 0 || dow === 6){
+    holidayBtn.style.display = 'none';
+    list.innerHTML = '<div class="empty-note">No classes over the weekend.</div>';
     return;
   }
 
   const periods = await getDayRecord(currentDate);
   if(periods.length === 0){
+    holidayBtn.style.display = 'none';
     list.innerHTML = '<div class="empty-note">Nothing scheduled.</div>';
     return;
   }
+  holidayBtn.style.display = 'block';
 
   list.innerHTML = '';
+  const allHoliday = periods.every(p => p.status === 'holiday');
+  holidayBtn.classList.toggle('active', allHoliday);
+  holidayBtn.textContent = allHoliday ? 'Holiday marked — tap to undo' : 'Mark whole day as holiday';
+
   periods.forEach(p => {
     const card = document.createElement('div');
-    card.className = 'period-card ' + (p.status==='present'?'present':p.status==='absent'?'absent':p.status==='nc'?'nc':'');
+    card.className = 'period-card ' + (p.status==='present'?'present':p.status==='absent'?'absent':p.status==='nc'?'nc':p.status==='holiday'?'holiday':'');
 
     const swapOptions = Object.keys(SUBJECTS).map(code =>
       `<option value="${code}" ${p.code===code?'selected':''}>${SUBJECTS[code]}</option>`
@@ -457,6 +516,7 @@ async function renderToday(){
         <button data-id="${p.id}" data-status="present" class="${p.status==='present'?'sel-present':''}">Present</button>
         <button data-id="${p.id}" data-status="absent" class="${p.status==='absent'?'sel-absent':''}">Absent</button>
         <button data-id="${p.id}" data-status="nc" class="${p.status==='nc'?'sel-nc':''}">No class</button>
+        <button data-id="${p.id}" data-status="holiday" class="${p.status==='holiday'?'sel-holiday':''}">Holiday</button>
       </div>
       <div class="swap-panel" id="swap-${p.id}">
         <select id="sel-${p.id}">${swapOptions}</select>
@@ -528,7 +588,7 @@ async function renderStats(){
 
   let keys = [];
   try{
-    const res = await window.storage.list('day:', false);
+    const res = await storage.list('day:');
     keys = (res && res.keys) ? res.keys : [];
   }catch(e){ keys = []; }
 
@@ -537,11 +597,11 @@ async function renderStats(){
 
   for(const key of keys){
     try{
-      const res = await window.storage.get(key, false);
+      const res = await storage.get(key);
       if(!res || !res.value) continue;
       const periods = JSON.parse(res.value);
       periods.forEach(p => {
-        if(p.status === 'unmarked' || p.status === 'nc') return;
+        if(p.status === 'unmarked' || p.status === 'nc' || p.status === 'holiday') return;
         if(!totals[p.code]) totals[p.code] = {held:0, present:0, name:SUBJECTS[p.code]||p.code};
         totals[p.code].held += 1;
         totalHeld += 1;
@@ -599,6 +659,15 @@ function switchTab(tab){
   document.getElementById('view-today').style.display = tab==='today' ? 'block':'none';
   document.getElementById('view-stats').style.display = tab==='stats' ? 'block':'none';
   if(tab==='today') renderToday(); else renderStats();
+}
+
+async function toggleDayHoliday(){
+  const periods = await getDayRecord(currentDate);
+  if(periods.length === 0) return;
+  const allHoliday = periods.every(p => p.status === 'holiday');
+  periods.forEach(p => { p.status = allHoliday ? 'unmarked' : 'holiday'; });
+  await saveDayRecord(currentDate, periods);
+  renderToday();
 }
 
 function changeDate(delta){
