@@ -14,6 +14,9 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;600;700&family=Google+Sans+Code:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore-compat.js"></script>
 <style>
   :root{
     --bg:#131316;
@@ -325,13 +328,129 @@
   .overall-card .lbl{font-size:12px;color:var(--text-soft);text-transform:uppercase;letter-spacing:1px;}
   .overall-card .val{font-size:28px;font-weight:700;margin-top:2px;color:var(--accent);}
   .loading{text-align:center;padding:40px;color:var(--text-soft);font-size:13px;}
+
+  .login-wrap{
+    min-height:100vh;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:24px;
+  }
+  .login-card{
+    width:100%;
+    max-width:340px;
+    background:var(--surface);
+    border:1px solid var(--border);
+    border-radius:16px;
+    padding:28px 24px;
+  }
+  .login-card .eyebrow{
+    font-family:var(--font-code);
+    font-size:11px;
+    letter-spacing:1.5px;
+    text-transform:uppercase;
+    color:var(--accent);
+  }
+  .login-card h1{
+    font-size:20px;
+    margin:4px 0 20px;
+    color:var(--text);
+  }
+  .login-card label{
+    display:block;
+    font-size:12px;
+    color:var(--text-soft);
+    margin-bottom:6px;
+  }
+  .login-card input{
+    width:100%;
+    padding:11px 12px;
+    margin-bottom:14px;
+    border-radius:9px;
+    border:1px solid var(--border);
+    background:var(--surface-2);
+    color:var(--text);
+    font-size:14px;
+    font-family:var(--font-main);
+  }
+  .login-card input:focus{outline:none;border-color:var(--accent);}
+  .login-btn{
+    width:100%;
+    padding:11px 0;
+    border-radius:9px;
+    border:1px solid var(--accent);
+    background:var(--accent);
+    color:var(--accent-ink);
+    font-size:14px;
+    font-weight:700;
+    font-family:var(--font-main);
+    margin-bottom:10px;
+  }
+  .login-switch{
+    width:100%;
+    padding:9px 0;
+    border-radius:9px;
+    border:1px solid var(--border);
+    background:transparent;
+    color:var(--text-soft);
+    font-size:13px;
+    font-family:var(--font-main);
+  }
+  .login-error{
+    color:var(--absent);
+    font-size:12px;
+    margin:-6px 0 12px;
+    min-height:14px;
+  }
+  .signout-btn{
+    background:var(--surface-2);
+    border:1px solid var(--border);
+    color:var(--text-soft);
+    font-size:12px;
+    padding:6px 12px;
+    border-radius:8px;
+    font-family:var(--font-main);
+  }
+  .topbar-row{
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-start;
+  }
+  .user-email{
+    font-size:11px;
+    color:var(--text-faint);
+    font-family:var(--font-code);
+    margin-top:6px;
+  }
 </style>
 </head>
 <body>
 
+<div id="login-screen" class="login-wrap">
+  <div class="login-card">
+    <div class="eyebrow">MBCET · CSE · S7 CS1</div>
+    <h1 id="login-title">Sign in</h1>
+    <label for="login-email">Email</label>
+    <input type="email" id="login-email" placeholder="you@example.com" autocomplete="email">
+    <label for="login-password">Password</label>
+    <input type="password" id="login-password" placeholder="At least 6 characters" autocomplete="current-password">
+    <div class="login-error" id="login-error"></div>
+    <button class="login-btn" id="login-submit" onclick="handleAuthSubmit()">Sign in</button>
+    <button class="login-switch" id="login-toggle-mode" onclick="toggleAuthMode()">Need an account? Sign up</button>
+  </div>
+</div>
+
+<div id="app" style="display:none;">
+
 <div class="topbar">
-  <div class="eyebrow">MBCET · CSE · S7 CS1</div>
-  <h1>Attendance tracker</h1>
+  <div class="topbar-row">
+    <div>
+      <div class="eyebrow">MBCET · CSE · S7 CS1</div>
+      <h1>Attendance tracker</h1>
+      <div class="user-email" id="user-email-label"></div>
+    </div>
+    <button class="signout-btn" onclick="handleSignOut()">Sign out</button>
+  </div>
 </div>
 
 <div class="tabs">
@@ -358,29 +477,31 @@
   <div id="stats-list"><div class="loading">Crunching the numbers…</div></div>
 </div>
 
+</div>
+
+
 <script>
 // ---------- Master schedule (fixed, from MBCET S7 CS1 timetable) ----------
 // PE-III elective chosen: Deep Learning. IE-II elective chosen: Environmental Health and Safety.
+// Lab and tutorial hours count toward the same subject's attendance as its lecture hours.
 const SUBJECTS = {
-  "CD":        "Compiler Design",
-  "CD-LAB":    "Compiler Design (Lab)",
-  "CD-T":      "Compiler Design (Tutorial)",
-  "WT":        "Web Technology",
-  "WT-LAB":    "Web Technology (Lab)",
-  "PE3":       "Deep Learning",
-  "PE3-T":     "Deep Learning (Tutorial)",
-  "IE2":       "Environmental Health and Safety",
-  "CVV":       "Comprehensive Viva Voce",
-  "PROJ":      "Project",
-  "PROJ-SDP":  "Project / SDP"
+  "CD":   "Compiler Design",
+  "WT":   "Web Technology",
+  "PE3":  "Deep Learning",
+  "IE2":  "Environmental Health and Safety",
+  "CVV":  "Comprehensive Viva Voce",
+  "PROJ": "Project",
+  "SDP":  "SDP"
 };
 
 // day index: 0=Sun 1=Mon ... 6=Sat. Every hour is its own period, nothing merged.
+// "label" (when present) overrides the display name for that hour, e.g. Lab/Tutorial,
+// but "code" still determines which subject's attendance it counts toward.
 const TEMPLATE = {
   1: [ // Monday
     {id:"p1", time:"09:15–10:15", code:"CD"},
-    {id:"p2", time:"10:35–11:35", code:"CD-LAB"},
-    {id:"p3", time:"11:35–12:35", code:"CD-LAB"},
+    {id:"p2", time:"10:35–11:35", code:"CD", label:"Compiler Design (Lab)"},
+    {id:"p3", time:"11:35–12:35", code:"CD", label:"Compiler Design (Lab)"},
     {id:"p4", time:"13:30–14:25", code:"PROJ"},
     {id:"p5", time:"14:25–15:20", code:"PE3"},
     {id:"p6", time:"15:35–16:30", code:"IE2"},
@@ -389,15 +510,15 @@ const TEMPLATE = {
     {id:"p1", time:"09:15–10:15", code:"PE3"},
     {id:"p2", time:"10:35–11:35", code:"WT"},
     {id:"p3", time:"11:35–12:35", code:"CD"},
-    {id:"p4", time:"13:30–14:25", code:"WT-LAB"},
-    {id:"p5", time:"14:25–15:20", code:"WT-LAB"},
-    {id:"p6", time:"15:35–16:30", code:"WT-LAB"},
+    {id:"p4", time:"13:30–14:25", code:"WT", label:"Web Technology (Lab)"},
+    {id:"p5", time:"14:25–15:20", code:"WT", label:"Web Technology (Lab)"},
+    {id:"p6", time:"15:35–16:30", code:"WT", label:"Web Technology (Lab)"},
   ],
   3: [ // Wednesday
     {id:"p1", time:"09:15–10:15", code:"IE2"},
     {id:"p2", time:"10:35–11:35", code:"WT"},
-    {id:"p3", time:"11:35–12:35", code:"PE3-T"},
-    {id:"p4", time:"13:30–14:25", code:"PROJ-SDP"},
+    {id:"p3", time:"11:35–12:35", code:"PE3", label:"Deep Learning (Tutorial)"},
+    {id:"p4", time:"13:30–14:25", code:"SDP"},
     {id:"p5", time:"14:25–15:20", code:"CVV"},
     {id:"p6", time:"15:35–16:30", code:"CVV"},
   ],
@@ -405,7 +526,7 @@ const TEMPLATE = {
     {id:"p1", time:"09:15–10:15", code:"IE2"},
     {id:"p2", time:"10:35–11:35", code:"CD"},
     {id:"p3", time:"11:35–12:35", code:"WT"},
-    {id:"p4", time:"13:30–14:25", code:"CD-T"},
+    {id:"p4", time:"13:30–14:25", code:"CD", label:"Compiler Design (Tutorial)"},
     {id:"p5", time:"14:25–15:20", code:"PROJ"},
     {id:"p6", time:"15:35–16:30", code:"PROJ"},
   ],
@@ -440,24 +561,89 @@ function dowName(d){
   return d.toLocaleDateString('en-US',{weekday:'long'});
 }
 
-// Persistent storage using the browser's own localStorage.
-// Data is saved on this device/browser and survives closing the app or restarting the phone.
-const storage = {
-  get(key){
-    const raw = localStorage.getItem(key);
-    return Promise.resolve(raw !== null ? {key, value: raw} : null);
-  },
-  set(key, value){
-    localStorage.setItem(key, value);
-    return Promise.resolve({key, value});
-  },
-  list(prefix){
-    const keys = [];
-    for(let i=0;i<localStorage.length;i++){
-      const k = localStorage.key(i);
-      if(k && k.indexOf(prefix)===0) keys.push(k);
+// ============ Firebase setup ============
+// Paste your own Firebase project's config here (Firebase console → Project settings → Your apps).
+// This project's config is safe to expose publicly - it is not a secret, access is controlled
+// by Firestore security rules, not by hiding this object.
+const firebaseConfig = {
+  apiKey: "YOUR_API_KEY",
+  authDomain: "YOUR_PROJECT.firebaseapp.com",
+  projectId: "YOUR_PROJECT_ID",
+  storageBucket: "YOUR_PROJECT.appspot.com",
+  messagingSenderId: "YOUR_SENDER_ID",
+  appId: "YOUR_APP_ID"
+};
+firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
+const db = firebase.firestore();
+let authMode = 'signin'; // 'signin' or 'signup'
+
+function toggleAuthMode(){
+  authMode = (authMode === 'signin') ? 'signup' : 'signin';
+  document.getElementById('login-title').textContent = authMode === 'signin' ? 'Sign in' : 'Create account';
+  document.getElementById('login-submit').textContent = authMode === 'signin' ? 'Sign in' : 'Create account';
+  document.getElementById('login-toggle-mode').textContent = authMode === 'signin' ? 'Need an account? Sign up' : 'Already have an account? Sign in';
+  document.getElementById('login-error').textContent = '';
+}
+
+async function handleAuthSubmit(){
+  const email = document.getElementById('login-email').value.trim();
+  const password = document.getElementById('login-password').value;
+  const errBox = document.getElementById('login-error');
+  errBox.textContent = '';
+  if(!email || !password){
+    errBox.textContent = 'Enter both email and password.';
+    return;
+  }
+  try{
+    if(authMode === 'signin'){
+      await auth.signInWithEmailAndPassword(email, password);
+    }else{
+      await auth.createUserWithEmailAndPassword(email, password);
     }
-    return Promise.resolve({keys});
+  }catch(e){
+    errBox.textContent = e.message.replace('Firebase: ', '');
+  }
+}
+
+function handleSignOut(){
+  auth.signOut();
+}
+
+auth.onAuthStateChanged(user => {
+  const loginScreen = document.getElementById('login-screen');
+  const app = document.getElementById('app');
+  if(user){
+    loginScreen.style.display = 'none';
+    app.style.display = 'block';
+    document.getElementById('user-email-label').textContent = user.email;
+    renderToday();
+  }else{
+    loginScreen.style.display = 'flex';
+    app.style.display = 'none';
+  }
+});
+
+// Persistent storage using Firestore, scoped to the signed-in user's uid.
+// Data lives in the cloud, so it's the same on any device the user signs into.
+const storage = {
+  async get(key){
+    const uid = auth.currentUser.uid;
+    const snap = await db.collection('users').doc(uid).collection('data').doc(key).get();
+    if(!snap.exists) return null;
+    return {key, value: snap.data().value};
+  },
+  async set(key, value){
+    const uid = auth.currentUser.uid;
+    await db.collection('users').doc(uid).collection('data').doc(key).set({value});
+    return {key, value};
+  },
+  async list(prefix){
+    const uid = auth.currentUser.uid;
+    const snap = await db.collection('users').doc(uid).collection('data').get();
+    const keys = [];
+    snap.forEach(d => { if(d.id.indexOf(prefix) === 0) keys.push(d.id); });
+    return {keys};
   }
 };
 
@@ -470,10 +656,13 @@ async function getDayRecord(dateObj){
   // build fresh from template
   const dow = dateObj.getDay();
   const tmpl = TEMPLATE[dow] || [];
-  return tmpl.map(p => ({
-    id:p.id, time:p.time, code:p.code, name:SUBJECTS[p.code],
-    origCode:p.code, status:'unmarked'
-  }));
+  return tmpl.map(p => {
+    const name = p.label || SUBJECTS[p.code];
+    return {
+      id:p.id, time:p.time, code:p.code, name:name,
+      origCode:p.code, origName:name, status:'unmarked'
+    };
+  });
 }
 
 async function saveDayRecord(dateObj, periods){
@@ -596,7 +785,7 @@ async function renderToday(){
       const periods = await getDayRecord(currentDate);
       const p = periods.find(x=>x.id===id);
       p.code = p.origCode;
-      p.name = SUBJECTS[p.origCode];
+      p.name = p.origName;
       await saveDayRecord(currentDate, periods);
       openSwapId = null;
       renderToday();
@@ -702,8 +891,6 @@ function goToday(){
   currentDate.setHours(0,0,0,0);
   renderToday();
 }
-
-renderToday();
 </script>
 
 </body>
