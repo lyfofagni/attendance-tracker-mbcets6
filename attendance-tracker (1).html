@@ -1,0 +1,618 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>S7 CS1 · Attendance</title>
+<style>
+  :root{
+    --ink:#1c2331;
+    --ink-soft:#4a5468;
+    --paper:#f6f4ee;
+    --card:#ffffff;
+    --line:#e2ddce;
+    --accent:#b8862f;
+    --accent-soft:#f3e6cc;
+    --present:#3f7a52;
+    --present-bg:#e5f1e7;
+    --absent:#b3453f;
+    --absent-bg:#f8e6e4;
+    --nc:#8a8477;
+    --nc-bg:#eeece3;
+    --radius:14px;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:var(--paper);
+    color:var(--ink);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+    -webkit-tap-highlight-color:transparent;
+    padding-bottom:40px;
+  }
+  .topbar{
+    background:var(--ink);
+    color:#f6f4ee;
+    padding:18px 20px 16px;
+    position:sticky;
+    top:0;
+    z-index:10;
+  }
+  .topbar .eyebrow{
+    font-family:"Courier New",monospace;
+    font-size:11px;
+    letter-spacing:1.5px;
+    text-transform:uppercase;
+    color:var(--accent);
+    opacity:0.9;
+  }
+  .topbar h1{
+    margin:2px 0 0;
+    font-size:20px;
+    font-weight:700;
+    letter-spacing:0.2px;
+  }
+  .tabs{
+    display:flex;
+    gap:8px;
+    margin:14px 20px 0;
+  }
+  .tab{
+    flex:1;
+    text-align:center;
+    padding:10px 0;
+    border-radius:10px;
+    background:var(--card);
+    border:1px solid var(--line);
+    font-size:14px;
+    font-weight:600;
+    color:var(--ink-soft);
+    cursor:pointer;
+  }
+  .tab.active{
+    background:var(--ink);
+    color:#fff;
+    border-color:var(--ink);
+  }
+  .content{padding:16px 20px 0;}
+
+  .datebar{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    background:var(--card);
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    padding:10px 12px;
+    margin-bottom:14px;
+  }
+  .datebar button{
+    width:36px;height:36px;
+    border-radius:50%;
+    border:1px solid var(--line);
+    background:var(--paper);
+    font-size:16px;
+    color:var(--ink);
+  }
+  .datebar .date-label{
+    text-align:center;
+    flex:1;
+  }
+  .date-label .dow{
+    font-weight:700;
+    font-size:15px;
+  }
+  .date-label .full{
+    font-size:12px;
+    color:var(--ink-soft);
+    font-family:"Courier New",monospace;
+  }
+  .today-btn{
+    font-size:11px;
+    padding:5px 10px;
+    border-radius:8px;
+    border:1px solid var(--accent);
+    color:var(--accent);
+    background:var(--accent-soft);
+    margin-left:8px;
+  }
+
+  .period-card{
+    background:var(--card);
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    padding:14px 14px 12px;
+    margin-bottom:12px;
+    position:relative;
+    overflow:hidden;
+  }
+  .period-card::before{
+    content:"";
+    position:absolute;
+    left:0;top:0;bottom:0;
+    width:5px;
+    background:var(--stripe,var(--line));
+  }
+  .period-card.present::before{background:var(--present);}
+  .period-card.absent::before{background:var(--absent);}
+  .period-card.nc::before{background:var(--nc);}
+
+  .p-top{
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-start;
+    margin-bottom:10px;
+  }
+  .p-time{
+    font-family:"Courier New",monospace;
+    font-size:12px;
+    color:var(--ink-soft);
+    letter-spacing:0.3px;
+  }
+  .p-name{
+    font-size:16px;
+    font-weight:700;
+    margin-top:2px;
+  }
+  .p-code{
+    font-size:12px;
+    color:var(--accent);
+    font-weight:600;
+  }
+  .swap-btn{
+    border:1px solid var(--line);
+    background:var(--paper);
+    border-radius:8px;
+    padding:6px 9px;
+    font-size:11px;
+    color:var(--ink-soft);
+    white-space:nowrap;
+  }
+  .status-row{
+    display:flex;
+    gap:8px;
+  }
+  .status-row button{
+    flex:1;
+    padding:9px 0;
+    border-radius:9px;
+    border:1px solid var(--line);
+    background:var(--paper);
+    font-size:13px;
+    font-weight:600;
+    color:var(--ink-soft);
+  }
+  .status-row button.sel-present{background:var(--present-bg);color:var(--present);border-color:var(--present);}
+  .status-row button.sel-absent{background:var(--absent-bg);color:var(--absent);border-color:var(--absent);}
+  .status-row button.sel-nc{background:var(--nc-bg);color:var(--nc);border-color:var(--nc);}
+
+  .empty-note{
+    text-align:center;
+    color:var(--ink-soft);
+    font-size:13px;
+    padding:30px 10px;
+  }
+
+  .swap-panel{
+    display:none;
+    margin-top:10px;
+    padding-top:10px;
+    border-top:1px dashed var(--line);
+  }
+  .swap-panel.open{display:block;}
+  .swap-panel select{
+    width:100%;
+    padding:8px;
+    border-radius:8px;
+    border:1px solid var(--line);
+    font-size:13px;
+    background:#fff;
+    color:var(--ink);
+  }
+  .swap-panel .swap-actions{
+    display:flex;
+    gap:8px;
+    margin-top:8px;
+  }
+  .swap-panel .swap-actions button{
+    flex:1;
+    padding:8px 0;
+    border-radius:8px;
+    font-size:12px;
+    font-weight:600;
+    border:1px solid var(--line);
+    background:var(--paper);
+    color:var(--ink-soft);
+  }
+  .swap-panel .swap-actions button.reset{color:var(--absent);}
+
+  .stat-card{
+    background:var(--card);
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    padding:14px;
+    margin-bottom:10px;
+  }
+  .stat-top{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-bottom:8px;
+  }
+  .stat-name{font-weight:700;font-size:14px;}
+  .stat-code{font-family:"Courier New",monospace;font-size:11px;color:var(--ink-soft);}
+  .stat-pct{font-size:18px;font-weight:700;}
+  .pct-good{color:var(--present);}
+  .pct-warn{color:var(--accent);}
+  .pct-bad{color:var(--absent);}
+  .bar-bg{
+    width:100%;
+    height:8px;
+    border-radius:5px;
+    background:var(--line);
+    overflow:hidden;
+  }
+  .bar-fill{height:100%;border-radius:5px;}
+  .stat-sub{
+    display:flex;
+    justify-content:space-between;
+    font-size:11px;
+    color:var(--ink-soft);
+    margin-top:6px;
+    font-family:"Courier New",monospace;
+  }
+  .overall-card{
+    background:var(--ink);
+    color:#fff;
+    border-radius:var(--radius);
+    padding:16px;
+    margin-bottom:16px;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+  }
+  .overall-card .lbl{font-size:12px;color:#cfc9b8;text-transform:uppercase;letter-spacing:1px;}
+  .overall-card .val{font-size:28px;font-weight:700;margin-top:2px;}
+  .loading{text-align:center;padding:40px;color:var(--ink-soft);font-size:13px;}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="eyebrow">MBCET · CSE · S7 CS1</div>
+  <h1>Attendance tracker</h1>
+</div>
+
+<div class="tabs">
+  <div class="tab active" id="tab-today" onclick="switchTab('today')">Today's classes</div>
+  <div class="tab" id="tab-stats" onclick="switchTab('stats')">Attendance stats</div>
+</div>
+
+<div class="content" id="view-today">
+  <div class="datebar">
+    <button onclick="changeDate(-1)">&#8249;</button>
+    <div class="date-label">
+      <div class="dow" id="dow-label">-</div>
+      <div class="full" id="date-label">-</div>
+    </div>
+    <button onclick="changeDate(1)">&#8250;</button>
+    <button class="today-btn" onclick="goToday()" style="width:auto;height:auto;">Today</button>
+  </div>
+  <div id="periods-list"><div class="loading">Loading your day…</div></div>
+</div>
+
+<div class="content" id="view-stats" style="display:none;">
+  <div id="overall-wrap"></div>
+  <div id="stats-list"><div class="loading">Crunching the numbers…</div></div>
+</div>
+
+<script>
+// ---------- Master schedule (fixed, from MBCET S7 CS1 timetable) ----------
+// PE-III elective chosen: Deep Learning. IE-II elective chosen: Environmental Health and Safety.
+const SUBJECTS = {
+  "CD":        "Compiler Design",
+  "CD-LAB":    "Compiler Design (Lab)",
+  "CD-T":      "Compiler Design (Tutorial)",
+  "WT":        "Web Technology",
+  "WT-LAB":    "Web Technology (Lab)",
+  "PE3":       "Deep Learning",
+  "PE3-T":     "Deep Learning (Tutorial)",
+  "IE2":       "Environmental Health and Safety",
+  "CVV":       "Comprehensive Viva Voce",
+  "PROJ":      "Project",
+  "PROJ-SDP":  "Project / SDP",
+  "MINOR":     "Minor Project"
+};
+
+// day index: 0=Sun 1=Mon ... 6=Sat
+const TEMPLATE = {
+  1: [ // Monday
+    {id:"p1", time:"09:15–10:15", code:"CD"},
+    {id:"p2", time:"10:35–12:35", code:"CD-LAB"},
+    {id:"p3", time:"13:30–14:25", code:"PROJ"},
+    {id:"p4", time:"14:25–15:20", code:"PE3"},
+    {id:"p5", time:"15:35–16:30", code:"IE2"},
+  ],
+  2: [ // Tuesday
+    {id:"p1", time:"09:15–10:15", code:"PE3"},
+    {id:"p2", time:"10:35–11:35", code:"WT"},
+    {id:"p3", time:"11:35–12:35", code:"CD"},
+    {id:"p4", time:"13:30–15:20", code:"WT-LAB"},
+    {id:"p5", time:"15:35–16:30", code:"WT-LAB"},
+  ],
+  3: [ // Wednesday
+    {id:"p1", time:"09:15–10:15", code:"IE2"},
+    {id:"p2", time:"10:35–11:35", code:"WT"},
+    {id:"p3", time:"11:35–12:35", code:"PE3-T"},
+    {id:"p4", time:"13:30–14:25", code:"PROJ-SDP"},
+    {id:"p5", time:"14:25–15:20", code:"CVV"},
+    {id:"p6", time:"15:35–16:30", code:"CVV"},
+  ],
+  4: [ // Thursday
+    {id:"p1", time:"09:15–10:15", code:"IE2"},
+    {id:"p2", time:"10:35–11:35", code:"CD"},
+    {id:"p3", time:"11:35–12:35", code:"WT"},
+    {id:"p4", time:"13:30–14:25", code:"CD-T"},
+    {id:"p5", time:"14:25–15:20", code:"PROJ"},
+    {id:"p6", time:"15:35–16:30", code:"PROJ"},
+  ],
+  5: [ // Friday
+    {id:"p1", time:"09:15–10:15", code:"PROJ"},
+    {id:"p2", time:"10:35–12:35", code:"PROJ"},
+    {id:"p3", time:"14:00–16:30", code:"PROJ"},
+  ],
+  6: [ // Saturday
+    {id:"p1", time:"09:15–10:15", code:"MINOR"},
+    {id:"p2", time:"10:35–12:35", code:"MINOR"},
+    {id:"p3", time:"14:00–16:30", code:"MINOR"},
+  ],
+  0: [] // Sunday - no classes
+};
+
+const TERM_START = new Date(2026,6,1);   // 1/7/2026
+const TERM_END   = new Date(2026,10,5);  // 5/11/2026
+
+let currentDate = new Date();
+currentDate.setHours(0,0,0,0);
+let activeTab = 'today';
+let openSwapId = null;
+
+function fmtKey(d){
+  const y=d.getFullYear(), m=String(d.getMonth()+1).padStart(2,'0'), day=String(d.getDate()).padStart(2,'0');
+  return `${y}-${m}-${day}`;
+}
+function fmtFull(d){
+  return d.toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'});
+}
+function dowName(d){
+  return d.toLocaleDateString('en-US',{weekday:'long'});
+}
+
+async function getDayRecord(dateObj){
+  const key = 'day:'+fmtKey(dateObj);
+  try{
+    const res = await window.storage.get(key, false);
+    if(res && res.value) return JSON.parse(res.value);
+  }catch(e){}
+  // build fresh from template
+  const dow = dateObj.getDay();
+  const tmpl = TEMPLATE[dow] || [];
+  return tmpl.map(p => ({
+    id:p.id, time:p.time, code:p.code, name:SUBJECTS[p.code],
+    origCode:p.code, status:'unmarked'
+  }));
+}
+
+async function saveDayRecord(dateObj, periods){
+  const key = 'day:'+fmtKey(dateObj);
+  try{
+    await window.storage.set(key, JSON.stringify(periods), false);
+  }catch(e){ console.error('save failed', e); }
+}
+
+function inTerm(d){
+  return d >= TERM_START && d <= TERM_END;
+}
+
+async function renderToday(){
+  document.getElementById('dow-label').textContent = dowName(currentDate);
+  document.getElementById('date-label').textContent = fmtFull(currentDate);
+  const list = document.getElementById('periods-list');
+
+  if(!inTerm(currentDate)){
+    list.innerHTML = '<div class="empty-note">Outside the semester window (1 Jul – 5 Nov 2026). No classes to mark.</div>';
+    return;
+  }
+  const dow = currentDate.getDay();
+  if(dow === 0){
+    list.innerHTML = '<div class="empty-note">No classes on Sunday.</div>';
+    return;
+  }
+
+  const periods = await getDayRecord(currentDate);
+  if(periods.length === 0){
+    list.innerHTML = '<div class="empty-note">Nothing scheduled.</div>';
+    return;
+  }
+
+  list.innerHTML = '';
+  periods.forEach(p => {
+    const card = document.createElement('div');
+    card.className = 'period-card ' + (p.status==='present'?'present':p.status==='absent'?'absent':p.status==='nc'?'nc':'');
+
+    const swapOptions = Object.keys(SUBJECTS).map(code =>
+      `<option value="${code}" ${p.code===code?'selected':''}>${SUBJECTS[code]}</option>`
+    ).join('');
+
+    card.innerHTML = `
+      <div class="p-top">
+        <div>
+          <div class="p-time">${p.time}</div>
+          <div class="p-name">${p.name}</div>
+          <div class="p-code">${p.code}${p.code!==p.origCode?' · substituted':''}</div>
+        </div>
+        <button class="swap-btn" data-id="${p.id}">Swap</button>
+      </div>
+      <div class="status-row">
+        <button data-id="${p.id}" data-status="present" class="${p.status==='present'?'sel-present':''}">Present</button>
+        <button data-id="${p.id}" data-status="absent" class="${p.status==='absent'?'sel-absent':''}">Absent</button>
+        <button data-id="${p.id}" data-status="nc" class="${p.status==='nc'?'sel-nc':''}">No class</button>
+      </div>
+      <div class="swap-panel" id="swap-${p.id}">
+        <select id="sel-${p.id}">${swapOptions}</select>
+        <div class="swap-actions">
+          <button class="reset" data-id="${p.id}">Reset to timetable</button>
+          <button class="apply" data-id="${p.id}">Apply swap</button>
+        </div>
+      </div>
+    `;
+    list.appendChild(card);
+  });
+
+  // wire status buttons
+  list.querySelectorAll('.status-row button').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const id = btn.dataset.id;
+      const status = btn.dataset.status;
+      const periods = await getDayRecord(currentDate);
+      const p = periods.find(x=>x.id===id);
+      p.status = (p.status === status) ? 'unmarked' : status;
+      await saveDayRecord(currentDate, periods);
+      renderToday();
+    });
+  });
+
+  // wire swap toggle
+  list.querySelectorAll('.swap-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const id = btn.dataset.id;
+      const panel = document.getElementById('swap-'+id);
+      openSwapId = (openSwapId === id) ? null : id;
+      list.querySelectorAll('.swap-panel').forEach(pn => pn.classList.remove('open'));
+      if(openSwapId) document.getElementById('swap-'+openSwapId).classList.add('open');
+    });
+  });
+
+  // wire apply / reset
+  list.querySelectorAll('.swap-actions .apply').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const id = btn.dataset.id;
+      const newCode = document.getElementById('sel-'+id).value;
+      const periods = await getDayRecord(currentDate);
+      const p = periods.find(x=>x.id===id);
+      p.code = newCode;
+      p.name = SUBJECTS[newCode];
+      await saveDayRecord(currentDate, periods);
+      openSwapId = null;
+      renderToday();
+    });
+  });
+  list.querySelectorAll('.swap-actions .reset').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const id = btn.dataset.id;
+      const periods = await getDayRecord(currentDate);
+      const p = periods.find(x=>x.id===id);
+      p.code = p.origCode;
+      p.name = SUBJECTS[p.origCode];
+      await saveDayRecord(currentDate, periods);
+      openSwapId = null;
+      renderToday();
+    });
+  });
+}
+
+async function renderStats(){
+  const overallWrap = document.getElementById('overall-wrap');
+  const list = document.getElementById('stats-list');
+  list.innerHTML = '<div class="loading">Crunching the numbers…</div>';
+
+  let keys = [];
+  try{
+    const res = await window.storage.list('day:', false);
+    keys = (res && res.keys) ? res.keys : [];
+  }catch(e){ keys = []; }
+
+  const totals = {}; // code -> {held, present}
+  let totalHeld = 0, totalPresent = 0;
+
+  for(const key of keys){
+    try{
+      const res = await window.storage.get(key, false);
+      if(!res || !res.value) continue;
+      const periods = JSON.parse(res.value);
+      periods.forEach(p => {
+        if(p.status === 'unmarked' || p.status === 'nc') return;
+        if(!totals[p.code]) totals[p.code] = {held:0, present:0, name:SUBJECTS[p.code]||p.code};
+        totals[p.code].held += 1;
+        totalHeld += 1;
+        if(p.status === 'present'){ totals[p.code].present += 1; totalPresent += 1; }
+      });
+    }catch(e){}
+  }
+
+  const overallPct = totalHeld ? Math.round((totalPresent/totalHeld)*100) : 0;
+  overallWrap.innerHTML = `
+    <div class="overall-card">
+      <div>
+        <div class="lbl">Overall attendance</div>
+        <div class="val">${overallPct}%</div>
+      </div>
+      <div style="text-align:right;font-size:12px;color:#cfc9b8;">
+        ${totalPresent} / ${totalHeld}<br>periods attended
+      </div>
+    </div>
+  `;
+
+  const codes = Object.keys(totals).sort((a,b)=> totals[b].held - totals[a].held);
+  if(codes.length === 0){
+    list.innerHTML = '<div class="empty-note">No attendance marked yet. Head to the Today tab to get started.</div>';
+    return;
+  }
+
+  list.innerHTML = '';
+  codes.forEach(code => {
+    const t = totals[code];
+    const pct = t.held ? Math.round((t.present/t.held)*100) : 0;
+    const pctClass = pct>=75 ? 'pct-good' : pct>=65 ? 'pct-warn' : 'pct-bad';
+    const barColor = pct>=75 ? 'var(--present)' : pct>=65 ? 'var(--accent)' : 'var(--absent)';
+    const div = document.createElement('div');
+    div.className = 'stat-card';
+    div.innerHTML = `
+      <div class="stat-top">
+        <div>
+          <div class="stat-name">${t.name}</div>
+          <div class="stat-code">${code}</div>
+        </div>
+        <div class="stat-pct ${pctClass}">${pct}%</div>
+      </div>
+      <div class="bar-bg"><div class="bar-fill" style="width:${pct}%;background:${barColor};"></div></div>
+      <div class="stat-sub"><span>Present: ${t.present}</span><span>Held: ${t.held}</span></div>
+    `;
+    list.appendChild(div);
+  });
+}
+
+function switchTab(tab){
+  activeTab = tab;
+  document.getElementById('tab-today').classList.toggle('active', tab==='today');
+  document.getElementById('tab-stats').classList.toggle('active', tab==='stats');
+  document.getElementById('view-today').style.display = tab==='today' ? 'block':'none';
+  document.getElementById('view-stats').style.display = tab==='stats' ? 'block':'none';
+  if(tab==='today') renderToday(); else renderStats();
+}
+
+function changeDate(delta){
+  currentDate.setDate(currentDate.getDate()+delta);
+  renderToday();
+}
+function goToday(){
+  currentDate = new Date();
+  currentDate.setHours(0,0,0,0);
+  renderToday();
+}
+
+renderToday();
+</script>
+
+</body>
+</html>
