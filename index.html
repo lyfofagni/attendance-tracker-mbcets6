@@ -566,13 +566,15 @@ function dowName(d){
 // This project's config is safe to expose publicly - it is not a secret, access is controlled
 // by Firestore security rules, not by hiding this object.
 const firebaseConfig = {
-  apiKey: "YOUR_API_KEY",
-  authDomain: "YOUR_PROJECT.firebaseapp.com",
-  projectId: "YOUR_PROJECT_ID",
-  storageBucket: "YOUR_PROJECT.appspot.com",
-  messagingSenderId: "YOUR_SENDER_ID",
-  appId: "YOUR_APP_ID"
+  apiKey: "AIzaSyD75DbH3nBxRYefWCgPPwac2Zp_5IArEGs",
+  authDomain: "mbcet-s6-attendance-tracker.firebaseapp.com",
+  projectId: "mbcet-s6-attendance-tracker",
+  storageBucket: "mbcet-s6-attendance-tracker.firebasestorage.app",
+  messagingSenderId: "130344758664",
+  appId: "1:130344758664:web:f1b22abcbb1f9f9358de3d",
+  measurementId: "G-NSHNEW0EJN"
 };
+
 firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db = firebase.firestore();
