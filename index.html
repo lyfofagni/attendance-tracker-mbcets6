@@ -280,6 +280,27 @@
   .swap-panel .swap-actions button.reset{color:var(--absent);}
   .swap-panel .swap-actions button.apply{color:var(--accent);}
 
+  .stats-header{
+    display:flex;
+    justify-content:flex-end;
+    margin-bottom:12px;
+  }
+  .toggle-lbl{
+    display:flex;
+    align-items:center;
+    gap:6px;
+    font-size:12px;
+    color:var(--text-soft);
+    cursor:pointer;
+    user-select:none;
+  }
+  .toggle-lbl input{
+    accent-color:var(--accent);
+    width:14px;
+    height:14px;
+    cursor:pointer;
+  }
+
   .stat-card{
     background:var(--surface);
     border:1px solid var(--border);
@@ -473,48 +494,49 @@
 </div>
 
 <div class="content" id="view-stats" style="display:none;">
+  <div class="stats-header">
+    <label class="toggle-lbl">
+      <input type="checkbox" id="combine-labs-toggle" onchange="renderStats()">
+      Combine Theory & Lab stats
+    </label>
+  </div>
   <div id="overall-wrap"></div>
   <div id="stats-list"><div class="loading">Crunching the numbers…</div></div>
 </div>
 
 </div>
 
-
 <script>
-// ---------- Master schedule (fixed, from MBCET S7 CS1 timetable) ----------
-// PE-III elective chosen: Deep Learning. IE-II elective chosen: Environmental Health and Safety.
-// Lab and tutorial hours count toward the same subject's attendance as its lecture hours.
 const SUBJECTS = {
-  "CD":   "Compiler Design",
-  "WT":   "Web Technology",
-  "PE3":  "Deep Learning",
-  "IE2":  "Environmental Health and Safety",
-  "CVV":  "Comprehensive Viva Voce",
-  "PROJ": "Project",
-  "SDP":  "SDP"
+  "CD":       "Compiler Design",
+  "CD_LAB":   "Compiler Design (Lab)",
+  "WT":       "Web Technology",
+  "WT_LAB":   "Web Technology (Lab)",
+  "PE3":      "Deep Learning",
+  "IE2":      "Environmental Health and Safety",
+  "CVV":      "Comprehensive Viva Voce",
+  "PROJ":     "Project",
+  "SDP":      "SDP"
 };
 
-// day index: 0=Sun 1=Mon ... 6=Sat. Every hour is its own period, nothing merged.
-// "label" (when present) overrides the display name for that hour, e.g. Lab/Tutorial,
-// but "code" still determines which subject's attendance it counts toward.
 const TEMPLATE = {
-  1: [ // Monday
+  1: [ 
     {id:"p1", time:"09:15–10:15", code:"CD"},
-    {id:"p2", time:"10:35–11:35", code:"CD", label:"Compiler Design (Lab)"},
-    {id:"p3", time:"11:35–12:35", code:"CD", label:"Compiler Design (Lab)"},
+    {id:"p2", time:"10:35–11:35", code:"CD_LAB"},
+    {id:"p3", time:"11:35–12:35", code:"CD_LAB"},
     {id:"p4", time:"13:30–14:25", code:"PROJ"},
     {id:"p5", time:"14:25–15:20", code:"PE3"},
     {id:"p6", time:"15:35–16:30", code:"IE2"},
   ],
-  2: [ // Tuesday
+  2: [ 
     {id:"p1", time:"09:15–10:15", code:"PE3"},
     {id:"p2", time:"10:35–11:35", code:"WT"},
     {id:"p3", time:"11:35–12:35", code:"CD"},
-    {id:"p4", time:"13:30–14:25", code:"WT", label:"Web Technology (Lab)"},
-    {id:"p5", time:"14:25–15:20", code:"WT", label:"Web Technology (Lab)"},
-    {id:"p6", time:"15:35–16:30", code:"WT", label:"Web Technology (Lab)"},
+    {id:"p4", time:"13:30–14:25", code:"WT_LAB"},
+    {id:"p5", time:"14:25–15:20", code:"WT_LAB"},
+    {id:"p6", time:"15:35–16:30", code:"WT_LAB"},
   ],
-  3: [ // Wednesday
+  3: [ 
     {id:"p1", time:"09:15–10:15", code:"IE2"},
     {id:"p2", time:"10:35–11:35", code:"WT"},
     {id:"p3", time:"11:35–12:35", code:"PE3", label:"Deep Learning (Tutorial)"},
@@ -522,7 +544,7 @@ const TEMPLATE = {
     {id:"p5", time:"14:25–15:20", code:"CVV"},
     {id:"p6", time:"15:35–16:30", code:"CVV"},
   ],
-  4: [ // Thursday
+  4: [ 
     {id:"p1", time:"09:15–10:15", code:"IE2"},
     {id:"p2", time:"10:35–11:35", code:"CD"},
     {id:"p3", time:"11:35–12:35", code:"WT"},
@@ -530,7 +552,7 @@ const TEMPLATE = {
     {id:"p5", time:"14:25–15:20", code:"PROJ"},
     {id:"p6", time:"15:35–16:30", code:"PROJ"},
   ],
-  5: [ // Friday
+  5: [ 
     {id:"p1", time:"09:15–10:15", code:"PROJ"},
     {id:"p2", time:"10:35–11:35", code:"PROJ"},
     {id:"p3", time:"11:35–12:35", code:"PROJ"},
@@ -538,12 +560,12 @@ const TEMPLATE = {
     {id:"p5", time:"14:50–15:40", code:"PROJ"},
     {id:"p6", time:"15:40–16:30", code:"PROJ"},
   ],
-  6: [], // Saturday - no classes
-  0: []  // Sunday - no classes
+  6: [], 
+  0: []  
 };
 
-const TERM_START = new Date(2026,6,1);   // 1/7/2026
-const TERM_END   = new Date(2026,10,5);  // 5/11/2026
+const TERM_START = new Date(2026,6,1);   
+const TERM_END   = new Date(2026,10,5);  
 
 let currentDate = new Date();
 currentDate.setHours(0,0,0,0);
@@ -561,10 +583,6 @@ function dowName(d){
   return d.toLocaleDateString('en-US',{weekday:'long'});
 }
 
-// ============ Firebase setup ============
-// Paste your own Firebase project's config here (Firebase console → Project settings → Your apps).
-// This project's config is safe to expose publicly - it is not a secret, access is controlled
-// by Firestore security rules, not by hiding this object.
 const firebaseConfig = {
   apiKey: "AIzaSyD75DbH3nBxRYefWCgPPwac2Zp_5IArEGs",
   authDomain: "mbcet-s6-attendance-tracker.firebaseapp.com",
@@ -578,7 +596,7 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db = firebase.firestore();
-let authMode = 'signin'; // 'signin' or 'signup'
+let authMode = 'signin'; 
 
 function toggleAuthMode(){
   authMode = (authMode === 'signin') ? 'signup' : 'signin';
@@ -626,8 +644,6 @@ auth.onAuthStateChanged(user => {
   }
 });
 
-// Persistent storage using Firestore, scoped to the signed-in user's uid.
-// Data lives in the cloud, so it's the same on any device the user signs into.
 const storage = {
   async get(key){
     const uid = auth.currentUser.uid;
@@ -655,7 +671,6 @@ async function getDayRecord(dateObj){
     const res = await storage.get(key);
     if(res && res.value) return JSON.parse(res.value);
   }catch(e){}
-  // build fresh from template
   const dow = dateObj.getDay();
   const tmpl = TEMPLATE[dow] || [];
   return tmpl.map(p => {
@@ -743,7 +758,6 @@ async function renderToday(){
     list.appendChild(card);
   });
 
-  // wire status buttons
   list.querySelectorAll('.status-row button').forEach(btn => {
     btn.addEventListener('click', async () => {
       const id = btn.dataset.id;
@@ -756,7 +770,6 @@ async function renderToday(){
     });
   });
 
-  // wire swap toggle
   list.querySelectorAll('.swap-btn').forEach(btn => {
     btn.addEventListener('click', () => {
       const id = btn.dataset.id;
@@ -767,7 +780,6 @@ async function renderToday(){
     });
   });
 
-  // wire apply / reset
   list.querySelectorAll('.swap-actions .apply').forEach(btn => {
     btn.addEventListener('click', async () => {
       const id = btn.dataset.id;
@@ -800,13 +812,15 @@ async function renderStats(){
   const list = document.getElementById('stats-list');
   list.innerHTML = '<div class="loading">Crunching the numbers…</div>';
 
+  const combineLabs = document.getElementById('combine-labs-toggle').checked;
+
   let keys = [];
   try{
     const res = await storage.list('day:');
     keys = (res && res.keys) ? res.keys : [];
   }catch(e){ keys = []; }
 
-  const totals = {}; // code -> {held, present}
+  const totals = {}; 
   let totalHeld = 0, totalPresent = 0;
 
   for(const key of keys){
@@ -816,10 +830,28 @@ async function renderStats(){
       const periods = JSON.parse(res.value);
       periods.forEach(p => {
         if(p.status === 'unmarked' || p.status === 'nc' || p.status === 'holiday') return;
-        if(!totals[p.code]) totals[p.code] = {held:0, present:0, name:SUBJECTS[p.code]||p.code};
-        totals[p.code].held += 1;
+        
+        let effectiveCode = p.code;
+        if (p.name && p.name.includes('(Lab)')) {
+           if (p.code === 'CD') effectiveCode = 'CD_LAB';
+           if (p.code === 'WT') effectiveCode = 'WT_LAB';
+        }
+
+        if (combineLabs) {
+           if (effectiveCode === 'CD_LAB') effectiveCode = 'CD';
+           if (effectiveCode === 'WT_LAB') effectiveCode = 'WT';
+        }
+
+        let dispName = SUBJECTS[effectiveCode] || p.name || effectiveCode;
+        if (combineLabs) {
+           if (effectiveCode === 'CD') dispName = "Compiler Design (Theory + Lab)";
+           if (effectiveCode === 'WT') dispName = "Web Technology (Theory + Lab)";
+        }
+
+        if(!totals[effectiveCode]) totals[effectiveCode] = {held:0, present:0, name:dispName};
+        totals[effectiveCode].held += 1;
         totalHeld += 1;
-        if(p.status === 'present'){ totals[p.code].present += 1; totalPresent += 1; }
+        if(p.status === 'present'){ totals[effectiveCode].present += 1; totalPresent += 1; }
       });
     }catch(e){}
   }
