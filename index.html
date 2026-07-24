@@ -347,7 +347,7 @@
     align-items:center;
   }
   .overall-card .lbl{font-size:12px;color:var(--text-soft);text-transform:uppercase;letter-spacing:1px;}
-  .overall-card .val{font-size:28px;font-weight:700;margin-top:2px;color:var(--accent);}
+  .overall-card .val{font-size:28px;font-weight:700;margin-top:2px;}
   .loading{text-align:center;padding:40px;color:var(--text-soft);font-size:13px;}
 
   .login-wrap{
@@ -443,6 +443,245 @@
     font-family:var(--font-code);
     margin-top:6px;
   }
+
+  /* ---- month selector (stats) ---- */
+  .stats-header{
+    flex-wrap:wrap;
+    gap:10px;
+  }
+  .month-select{
+    padding:7px 10px;
+    border-radius:8px;
+    border:1px solid var(--border);
+    background:var(--surface-2);
+    color:var(--text);
+    font-size:12px;
+    font-family:var(--font-main);
+  }
+
+  /* ---- weekend special / add-period ---- */
+  .special-toggle-btn{
+    display:block;
+    width:100%;
+    padding:10px 0;
+    margin-bottom:10px;
+    border-radius:10px;
+    border:1px solid var(--accent);
+    background:var(--accent-soft);
+    color:var(--accent);
+    font-size:13px;
+    font-weight:600;
+    font-family:var(--font-main);
+  }
+  .special-toggle-btn.active{
+    background:var(--accent);
+    color:var(--accent-ink);
+  }
+  .special-toggle-btn.off{
+    border-color:var(--absent);
+    background:var(--absent-bg);
+    color:var(--absent);
+  }
+  .card-remove-btn{
+    border:1px solid var(--absent);
+    background:var(--absent-bg);
+    color:var(--absent);
+    border-radius:8px;
+    padding:6px 9px;
+    font-size:11px;
+    font-family:var(--font-main);
+    margin-left:6px;
+  }
+  .add-period-panel{
+    background:var(--surface);
+    border:1px dashed var(--border-strong);
+    border-radius:var(--radius);
+    padding:14px;
+    margin-bottom:12px;
+  }
+  .add-period-panel label{
+    display:block;
+    font-size:11px;
+    color:var(--text-soft);
+    margin-bottom:5px;
+  }
+  .add-period-panel input, .add-period-panel select{
+    width:100%;
+    padding:9px;
+    margin-bottom:10px;
+    border-radius:8px;
+    border:1px solid var(--border);
+    background:var(--surface-2);
+    color:var(--text);
+    font-size:13px;
+    font-family:var(--font-main);
+  }
+  .add-period-panel button{
+    width:100%;
+    padding:9px 0;
+    border-radius:8px;
+    border:1px solid var(--accent);
+    background:var(--accent);
+    color:var(--accent-ink);
+    font-size:13px;
+    font-weight:700;
+    font-family:var(--font-main);
+  }
+  .add-period-launch{
+    display:block;
+    width:100%;
+    padding:10px 0;
+    margin-top:4px;
+    margin-bottom:12px;
+    border-radius:10px;
+    border:1px dashed var(--border-strong);
+    background:transparent;
+    color:var(--text-soft);
+    font-size:13px;
+    font-weight:600;
+    font-family:var(--font-main);
+  }
+
+  /* ---- calendar / monthly view ---- */
+  .cal-nav{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    background:var(--surface);
+    border:1px solid var(--border);
+    border-radius:var(--radius);
+    padding:10px 12px;
+    margin-bottom:14px;
+  }
+  .cal-nav button{
+    width:36px;height:36px;
+    border-radius:50%;
+    border:1px solid var(--border);
+    background:var(--surface-2);
+    font-size:16px;
+    color:var(--text);
+  }
+  .cal-nav .cal-title{
+    font-weight:700;
+    font-size:15px;
+    color:var(--text);
+    text-align:center;
+    flex:1;
+  }
+  .cal-summary{
+    background:var(--surface);
+    border:1px solid var(--border);
+    border-radius:var(--radius);
+    padding:14px;
+    margin-bottom:14px;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+  }
+  .cal-summary .lbl{font-size:12px;color:var(--text-soft);text-transform:uppercase;letter-spacing:1px;}
+  .cal-summary .val{font-size:26px;font-weight:700;margin-top:2px;}
+  .pct-good{color:var(--present);}
+  .pct-warn{color:#f2c14e;}
+  .pct-bad{color:var(--absent);}
+  .cal-grid{
+    display:grid;
+    grid-template-columns:repeat(7,1fr);
+    gap:6px;
+    margin-bottom:14px;
+  }
+  .cal-dow{
+    text-align:center;
+    font-size:10px;
+    color:var(--text-faint);
+    font-family:var(--font-code);
+    padding-bottom:2px;
+  }
+  .cal-cell{
+    aspect-ratio:1;
+    border-radius:9px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:12px;
+    font-weight:600;
+    border:1px solid var(--border);
+    background:var(--surface);
+    color:var(--text-soft);
+    cursor:pointer;
+  }
+  .cal-cell.cal-blank{visibility:hidden;cursor:default;}
+  .cal-cell.cal-present{background:var(--present-bg);color:var(--present);border-color:var(--present);}
+  .cal-cell.cal-absent{background:var(--absent-bg);color:var(--absent);border-color:var(--absent);}
+  .cal-cell.cal-mixed{background:#3a331c;color:#f2c14e;border-color:#f2c14e;}
+  .cal-cell.cal-holiday{background:var(--holiday-bg);color:var(--holiday);border-color:var(--holiday);}
+  .cal-cell.cal-weekend{background:var(--surface-2);color:var(--text-faint);border-style:dashed;}
+  .cal-cell.cal-today{box-shadow:0 0 0 2px var(--accent) inset;}
+  .cal-legend{
+    display:flex;
+    flex-wrap:wrap;
+    gap:10px;
+    font-size:11px;
+    color:var(--text-soft);
+    margin-bottom:16px;
+  }
+  .cal-legend span{display:flex;align-items:center;gap:5px;}
+  .cal-legend i{
+    width:10px;height:10px;
+    border-radius:3px;
+    display:inline-block;
+  }
+
+  /* ---- leaves / holidays view ---- */
+  .leave-tabs{
+    display:flex;
+    gap:8px;
+    margin-bottom:14px;
+  }
+  .leave-tab{
+    flex:1;
+    text-align:center;
+    padding:9px 0;
+    border-radius:10px;
+    background:var(--surface);
+    border:1px solid var(--border);
+    font-size:13px;
+    font-weight:600;
+    color:var(--text-soft);
+  }
+  .leave-tab.active{
+    background:var(--accent);
+    color:var(--accent-ink);
+    border-color:var(--accent);
+  }
+  .leave-month-group{
+    font-family:var(--font-code);
+    font-size:11px;
+    letter-spacing:1px;
+    text-transform:uppercase;
+    color:var(--text-faint);
+    margin:16px 0 8px;
+  }
+  .leave-month-group:first-child{margin-top:0;}
+  .leave-item{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    background:var(--surface);
+    border:1px solid var(--border);
+    border-radius:12px;
+    padding:12px 14px;
+    margin-bottom:8px;
+  }
+  .leave-item .li-date{font-weight:700;font-size:14px;color:var(--text);}
+  .leave-item .li-dow{font-size:11px;color:var(--text-soft);font-family:var(--font-code);}
+  .leave-item .li-tag{
+    font-size:11px;
+    font-weight:700;
+    padding:4px 9px;
+    border-radius:7px;
+  }
+  .leave-item.leave .li-tag{background:var(--absent-bg);color:var(--absent);}
+  .leave-item.holiday .li-tag{background:var(--holiday-bg);color:var(--holiday);}
 </style>
 </head>
 <body>
@@ -475,8 +714,10 @@
 </div>
 
 <div class="tabs">
-  <div class="tab active" id="tab-today" onclick="switchTab('today')">Today's classes</div>
-  <div class="tab" id="tab-stats" onclick="switchTab('stats')">Attendance stats</div>
+  <div class="tab active" id="tab-today" onclick="switchTab('today')">Today</div>
+  <div class="tab" id="tab-stats" onclick="switchTab('stats')">Stats</div>
+  <div class="tab" id="tab-calendar" onclick="switchTab('calendar')">Monthly</div>
+  <div class="tab" id="tab-leaves" onclick="switchTab('leaves')">Leaves</div>
 </div>
 
 <div class="content" id="view-today">
@@ -495,6 +736,7 @@
 
 <div class="content" id="view-stats" style="display:none;">
   <div class="stats-header">
+    <select class="month-select" id="stats-month-select" onchange="renderStats()"></select>
     <label class="toggle-lbl">
       <input type="checkbox" id="combine-labs-toggle" onchange="renderStats()">
       Combine Theory & Lab stats
@@ -502,6 +744,32 @@
   </div>
   <div id="overall-wrap"></div>
   <div id="stats-list"><div class="loading">Crunching the numbers…</div></div>
+</div>
+
+<div class="content" id="view-calendar" style="display:none;">
+  <div class="cal-nav">
+    <button onclick="changeCalMonth(-1)">&#8249;</button>
+    <div class="cal-title" id="cal-title-label">-</div>
+    <button onclick="changeCalMonth(1)">&#8250;</button>
+  </div>
+  <div class="cal-summary" id="cal-summary-wrap"></div>
+  <div class="cal-legend">
+    <span><i style="background:var(--present-bg);border:1px solid var(--present);"></i>Full present</span>
+    <span><i style="background:#3a331c;border:1px solid #f2c14e;"></i>Partial</span>
+    <span><i style="background:var(--absent-bg);border:1px solid var(--absent);"></i>Full absent</span>
+    <span><i style="background:var(--holiday-bg);border:1px solid var(--holiday);"></i>Holiday</span>
+    <span><i style="background:var(--surface-2);border:1px dashed var(--border-strong);"></i>Weekend / no class</span>
+  </div>
+  <div class="cal-grid" id="cal-dow-row"></div>
+  <div class="cal-grid" id="cal-grid"><div class="loading">Loading month…</div></div>
+</div>
+
+<div class="content" id="view-leaves" style="display:none;">
+  <div class="leave-tabs">
+    <div class="leave-tab active" id="leave-tab-leave" onclick="switchLeaveTab('leave')">Leave days</div>
+    <div class="leave-tab" id="leave-tab-holiday" onclick="switchLeaveTab('holiday')">Holidays</div>
+  </div>
+  <div id="leaves-list"><div class="loading">Scanning your records…</div></div>
 </div>
 
 </div>
@@ -571,6 +839,9 @@ let currentDate = new Date();
 currentDate.setHours(0,0,0,0);
 let activeTab = 'today';
 let openSwapId = null;
+let addPeriodOpen = false;
+let calYear = null, calMonth = null;
+let leaveTab = 'leave';
 
 function fmtKey(d){
   const y=d.getFullYear(), m=String(d.getMonth()+1).padStart(2,'0'), day=String(d.getDate()).padStart(2,'0');
@@ -693,6 +964,70 @@ function inTerm(d){
   return d >= TERM_START && d <= TERM_END;
 }
 
+async function getWeekendSpecial(dateObj){
+  const key = 'special:'+fmtKey(dateObj);
+  try{
+    const res = await storage.get(key);
+    return !!(res && res.value === '1');
+  }catch(e){ return false; }
+}
+async function setWeekendSpecial(dateObj, val){
+  const key = 'special:'+fmtKey(dateObj);
+  try{ await storage.set(key, val ? '1' : '0'); }catch(e){ console.error('special save failed', e); }
+}
+async function toggleWeekendSpecial(){
+  const cur = await getWeekendSpecial(currentDate);
+  await setWeekendSpecial(currentDate, !cur);
+  addPeriodOpen = false;
+  renderToday();
+}
+
+function addPeriodPanelHTML(){
+  const opts = Object.keys(SUBJECTS).map(code=>`<option value="${code}">${SUBJECTS[code]}</option>`).join('');
+  return `
+    <div class="add-period-panel" id="add-period-panel">
+      <label>Time</label>
+      <input type="text" id="new-period-time" placeholder="e.g. 09:15–10:15">
+      <label>Subject</label>
+      <select id="new-period-code">${opts}</select>
+      <button onclick="submitAddPeriod()">Add class</button>
+    </div>
+  `;
+}
+function toggleAddPeriodPanel(){
+  addPeriodOpen = !addPeriodOpen;
+  renderToday();
+}
+async function submitAddPeriod(){
+  const timeInput = document.getElementById('new-period-time');
+  const codeInput = document.getElementById('new-period-code');
+  const time = (timeInput && timeInput.value.trim()) || 'Special class';
+  const code = codeInput ? codeInput.value : Object.keys(SUBJECTS)[0];
+  const periods = await getDayRecord(currentDate);
+  const id = 'wp' + Date.now();
+  periods.push({
+    id, time, code, name: SUBJECTS[code],
+    origCode: code, origName: SUBJECTS[code],
+    status: 'unmarked', custom: true
+  });
+  await saveDayRecord(currentDate, periods);
+  addPeriodOpen = false;
+  renderToday();
+}
+async function removePeriod(id){
+  const periods = await getDayRecord(currentDate);
+  const filtered = periods.filter(p => p.id !== id);
+  await saveDayRecord(currentDate, filtered);
+  renderToday();
+}
+
+function pctClassFor(pct){
+  return pct>=85 ? 'pct-good' : pct>=75 ? 'pct-warn' : 'pct-bad';
+}
+function pctBarColor(pct){
+  return pct>=85 ? 'var(--present)' : pct>=75 ? '#f2c14e' : 'var(--absent)';
+}
+
 async function renderToday(){
   document.getElementById('dow-label').textContent = dowName(currentDate);
   document.getElementById('date-label').textContent = fmtFull(currentDate);
@@ -701,25 +1036,46 @@ async function renderToday(){
 
   if(!inTerm(currentDate)){
     holidayBtn.style.display = 'none';
+    addPeriodOpen = false;
     list.innerHTML = '<div class="empty-note">Outside the semester window (1 Jul – 5 Nov 2026). No classes to mark.</div>';
     return;
   }
+
   const dow = currentDate.getDay();
-  if(dow === 0 || dow === 6){
+  const isWeekend = (dow === 0 || dow === 6);
+  const weekendSpecial = isWeekend ? await getWeekendSpecial(currentDate) : false;
+
+  if(isWeekend && !weekendSpecial){
     holidayBtn.style.display = 'none';
-    list.innerHTML = '<div class="empty-note">No classes over the weekend.</div>';
+    addPeriodOpen = false;
+    list.innerHTML = `
+      <div class="empty-note">No classes over the weekend.</div>
+      <button class="special-toggle-btn" onclick="toggleWeekendSpecial()">Enable special class day</button>
+    `;
     return;
   }
 
   const periods = await getDayRecord(currentDate);
+  const weekendBannerHTML = (isWeekend && weekendSpecial)
+    ? `<button class="special-toggle-btn active off" onclick="toggleWeekendSpecial()">Special class day enabled — tap to disable</button>`
+    : '';
+
   if(periods.length === 0){
     holidayBtn.style.display = 'none';
-    list.innerHTML = '<div class="empty-note">Nothing scheduled.</div>';
+    list.innerHTML = weekendBannerHTML + '<div class="empty-note">No periods added yet.</div>';
+    if(isWeekend){
+      const wrap = document.createElement('div');
+      wrap.innerHTML = addPeriodOpen ? addPeriodPanelHTML() :
+        '<button class="add-period-launch" id="add-period-launch-btn">+ Add a class</button>';
+      list.appendChild(wrap.firstElementChild);
+      const launchBtn = document.getElementById('add-period-launch-btn');
+      if(launchBtn) launchBtn.addEventListener('click', toggleAddPeriodPanel);
+    }
     return;
   }
   holidayBtn.style.display = 'block';
 
-  list.innerHTML = '';
+  list.innerHTML = weekendBannerHTML;
   const allHoliday = periods.every(p => p.status === 'holiday');
   holidayBtn.classList.toggle('active', allHoliday);
   holidayBtn.textContent = allHoliday ? 'Holiday marked — tap to undo' : 'Mark whole day as holiday';
@@ -739,7 +1095,10 @@ async function renderToday(){
           <div class="p-name">${p.name}</div>
           <div class="p-code">${p.code}${p.code!==p.origCode?' · substituted':''}</div>
         </div>
-        <button class="swap-btn" data-id="${p.id}">Swap</button>
+        <div style="display:flex;">
+          <button class="swap-btn" data-id="${p.id}">Swap</button>
+          ${p.custom ? `<button class="card-remove-btn" data-id="${p.id}">Remove</button>` : ''}
+        </div>
       </div>
       <div class="status-row">
         <button data-id="${p.id}" data-status="present" class="${p.status==='present'?'sel-present':''}">Present</button>
@@ -756,6 +1115,21 @@ async function renderToday(){
       </div>
     `;
     list.appendChild(card);
+  });
+
+  if(isWeekend){
+    const wrap = document.createElement('div');
+    wrap.innerHTML = addPeriodOpen ? addPeriodPanelHTML() :
+      '<button class="add-period-launch" id="add-period-launch-btn">+ Add a class</button>';
+    list.appendChild(wrap.firstElementChild);
+    const launchBtn = document.getElementById('add-period-launch-btn');
+    if(launchBtn) launchBtn.addEventListener('click', toggleAddPeriodPanel);
+  }
+
+  list.querySelectorAll('.card-remove-btn').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      await removePeriod(btn.dataset.id);
+    });
   });
 
   list.querySelectorAll('.status-row button').forEach(btn => {
@@ -807,18 +1181,42 @@ async function renderToday(){
   });
 }
 
+function monthOptionsHTML(){
+  let html = '';
+  const d = new Date(TERM_START.getFullYear(), TERM_START.getMonth(), 1);
+  const end = new Date(TERM_END.getFullYear(), TERM_END.getMonth(), 1);
+  while(d <= end){
+    const y = d.getFullYear(), m = String(d.getMonth()+1).padStart(2,'0');
+    const label = d.toLocaleDateString('en-US',{month:'long',year:'numeric'});
+    html += `<option value="${y}-${m}">${label}</option>`;
+    d.setMonth(d.getMonth()+1);
+  }
+  return html;
+}
+function populateMonthSelect(){
+  const sel = document.getElementById('stats-month-select');
+  if(sel.options.length > 0) return;
+  sel.innerHTML = '<option value="all">All time</option>' + monthOptionsHTML();
+}
+
 async function renderStats(){
+  populateMonthSelect();
   const overallWrap = document.getElementById('overall-wrap');
   const list = document.getElementById('stats-list');
   list.innerHTML = '<div class="loading">Crunching the numbers…</div>';
 
   const combineLabs = document.getElementById('combine-labs-toggle').checked;
+  const selectedMonth = document.getElementById('stats-month-select').value;
 
   let keys = [];
   try{
     const res = await storage.list('day:');
     keys = (res && res.keys) ? res.keys : [];
   }catch(e){ keys = []; }
+
+  if(selectedMonth && selectedMonth !== 'all'){
+    keys = keys.filter(k => k.slice(4,11) === selectedMonth);
+  }
 
   const totals = {}; 
   let totalHeld = 0, totalPresent = 0;
@@ -861,7 +1259,7 @@ async function renderStats(){
     <div class="overall-card">
       <div>
         <div class="lbl">Overall attendance</div>
-        <div class="val">${overallPct}%</div>
+        <div class="val ${pctClassFor(overallPct)}">${overallPct}%</div>
       </div>
       <div style="text-align:right;font-size:12px;color:var(--text-soft);">
         ${totalPresent} / ${totalHeld}<br>periods attended
@@ -879,8 +1277,8 @@ async function renderStats(){
   codes.forEach(code => {
     const t = totals[code];
     const pct = t.held ? Math.round((t.present/t.held)*100) : 0;
-    const pctClass = pct>=75 ? 'pct-good' : pct>=65 ? 'pct-warn' : 'pct-bad';
-    const barColor = pct>=75 ? 'var(--present)' : pct>=65 ? 'var(--accent)' : 'var(--absent)';
+    const pctClass = pctClassFor(pct);
+    const barColor = pctBarColor(pct);
     const div = document.createElement('div');
     div.className = 'stat-card';
     div.innerHTML = `
@@ -902,9 +1300,171 @@ function switchTab(tab){
   activeTab = tab;
   document.getElementById('tab-today').classList.toggle('active', tab==='today');
   document.getElementById('tab-stats').classList.toggle('active', tab==='stats');
+  document.getElementById('tab-calendar').classList.toggle('active', tab==='calendar');
+  document.getElementById('tab-leaves').classList.toggle('active', tab==='leaves');
   document.getElementById('view-today').style.display = tab==='today' ? 'block':'none';
   document.getElementById('view-stats').style.display = tab==='stats' ? 'block':'none';
-  if(tab==='today') renderToday(); else renderStats();
+  document.getElementById('view-calendar').style.display = tab==='calendar' ? 'block':'none';
+  document.getElementById('view-leaves').style.display = tab==='leaves' ? 'block':'none';
+  if(tab==='today') renderToday();
+  else if(tab==='stats') renderStats();
+  else if(tab==='calendar') renderCalendar();
+  else if(tab==='leaves') renderLeaves();
+}
+
+function ensureCalInit(){
+  if(calYear === null){
+    calYear = currentDate.getFullYear();
+    calMonth = currentDate.getMonth();
+  }
+}
+
+function changeCalMonth(delta){
+  ensureCalInit();
+  calMonth += delta;
+  if(calMonth < 0){ calMonth = 11; calYear--; }
+  if(calMonth > 11){ calMonth = 0; calYear++; }
+  renderCalendar();
+}
+
+function jumpToDate(dateKey){
+  const [y,m,d] = dateKey.split('-').map(Number);
+  currentDate = new Date(y, m-1, d);
+  switchTab('today');
+}
+
+async function renderCalendar(){
+  ensureCalInit();
+  const grid = document.getElementById('cal-grid');
+  const dowRow = document.getElementById('cal-dow-row');
+  const titleLabel = document.getElementById('cal-title-label');
+  const summaryWrap = document.getElementById('cal-summary-wrap');
+
+  const monthDate = new Date(calYear, calMonth, 1);
+  titleLabel.textContent = monthDate.toLocaleDateString('en-US',{month:'long',year:'numeric'});
+  dowRow.innerHTML = ['S','M','T','W','T','F','S'].map(d=>`<div class="cal-dow">${d}</div>`).join('');
+  grid.innerHTML = '<div class="loading">Loading month…</div>';
+
+  const firstDow = monthDate.getDay();
+  const daysInMonth = new Date(calYear, calMonth+1, 0).getDate();
+  const today0 = new Date(); today0.setHours(0,0,0,0);
+
+  let cellsHTML = '';
+  for(let i=0;i<firstDow;i++) cellsHTML += '<div class="cal-cell cal-blank"></div>';
+
+  let presentDays=0, absentDays=0, mixedDays=0, holidayDays=0;
+
+  for(let day=1; day<=daysInMonth; day++){
+    const d = new Date(calYear, calMonth, day);
+    let cls = 'cal-empty';
+    if(inTerm(d)){
+      const dow = d.getDay();
+      const periods = await getDayRecord(d);
+      const allHoliday = periods.length > 0 && periods.every(p => p.status === 'holiday');
+      const counted = periods.filter(p => p.status === 'present' || p.status === 'absent');
+      if(allHoliday){
+        cls = 'cal-holiday'; holidayDays++;
+      }else if(counted.length === 0){
+        cls = (dow===0 || dow===6) ? 'cal-weekend' : 'cal-empty';
+      }else{
+        const absentCount = counted.filter(p => p.status === 'absent').length;
+        const presentCount = counted.filter(p => p.status === 'present').length;
+        if(absentCount > 0 && presentCount > 0){ cls = 'cal-mixed'; mixedDays++; }
+        else if(absentCount > 0){ cls = 'cal-absent'; absentDays++; }
+        else { cls = 'cal-present'; presentDays++; }
+      }
+    }
+    const isToday = d.getTime() === today0.getTime();
+    cellsHTML += `<div class="cal-cell ${cls}${isToday?' cal-today':''}" onclick="jumpToDate('${fmtKey(d)}')">${day}</div>`;
+  }
+
+  grid.innerHTML = cellsHTML;
+
+  summaryWrap.innerHTML = `
+    <div>
+      <div class="lbl">Full-present days</div>
+      <div class="val pct-good">${presentDays}</div>
+    </div>
+    <div style="text-align:right;font-size:12px;color:var(--text-soft);">
+      ${absentDays} full-absent · ${mixedDays} partial · ${holidayDays} holiday
+    </div>
+  `;
+}
+
+function switchLeaveTab(tab){
+  leaveTab = tab;
+  document.getElementById('leave-tab-leave').classList.toggle('active', tab==='leave');
+  document.getElementById('leave-tab-holiday').classList.toggle('active', tab==='holiday');
+  renderLeaves();
+}
+
+async function renderLeaves(){
+  const list = document.getElementById('leaves-list');
+  list.innerHTML = '<div class="loading">Scanning your records…</div>';
+
+  let keys = [];
+  try{
+    const res = await storage.list('day:');
+    keys = (res && res.keys) ? res.keys : [];
+  }catch(e){ keys = []; }
+
+  const leaveDays = [];
+  const holidayDays = [];
+
+  for(const key of keys){
+    try{
+      const res = await storage.get(key);
+      if(!res || !res.value) continue;
+      const periods = JSON.parse(res.value);
+      if(periods.length === 0) continue;
+
+      const dateStr = key.slice(4);
+      const [y,m,d] = dateStr.split('-').map(Number);
+      const dateObj = new Date(y, m-1, d);
+
+      const allHoliday = periods.every(p => p.status === 'holiday');
+      if(allHoliday){
+        holidayDays.push(dateObj);
+        continue;
+      }
+      const counted = periods.filter(p => p.status === 'present' || p.status === 'absent');
+      if(counted.length > 0 && counted.every(p => p.status === 'absent')){
+        leaveDays.push(dateObj);
+      }
+    }catch(e){}
+  }
+
+  leaveDays.sort((a,b)=>a-b);
+  holidayDays.sort((a,b)=>a-b);
+
+  const activeList = leaveTab === 'leave' ? leaveDays : holidayDays;
+  const tagLabel = leaveTab === 'leave' ? 'Leave' : 'Holiday';
+  const itemClass = leaveTab === 'leave' ? 'leave' : 'holiday';
+
+  if(activeList.length === 0){
+    list.innerHTML = `<div class="empty-note">No full ${leaveTab==='leave'?'leave':'holiday'} days recorded yet.</div>`;
+    return;
+  }
+
+  let html = '';
+  let lastMonthKey = '';
+  activeList.forEach(d => {
+    const monthKey = d.toLocaleDateString('en-US',{month:'long',year:'numeric'});
+    if(monthKey !== lastMonthKey){
+      html += `<div class="leave-month-group">${monthKey}</div>`;
+      lastMonthKey = monthKey;
+    }
+    html += `
+      <div class="leave-item ${itemClass}">
+        <div>
+          <div class="li-date">${fmtFull(d)}</div>
+          <div class="li-dow">${dowName(d)}</div>
+        </div>
+        <div class="li-tag">${tagLabel}</div>
+      </div>
+    `;
+  });
+  list.innerHTML = html;
 }
 
 async function toggleDayHoliday(){
